@@ -1,0 +1,26 @@
+name: matrix
+on: workflow_dispatch
+
+jobs:
+  list_versions:
+    runs-on: ubuntu-latest
+    outputs:
+      job_output: ${{ steps.dynamic.outputs.matrix1 }}
+    steps:
+      - id: dynamic
+        run: |
+          echo "::set-output name=matrix1::{\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}"
+      # - id: dynamic-2
+      #   run: |
+      #     echo "::set-output name=matrix1::{\"include\":[\"foo\",\"bar\"]}"
+
+
+  do_work:
+    needs: list_versions
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.list_versions.outputs.job_output) }}
+    steps:
+      - run: |
+          echo Project ${{ matrix.include }} 
+          echo Project ${{ matrix.project }} Config ${{ matrix.config }}
