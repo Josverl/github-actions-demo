@@ -1,34 +1,61 @@
 name: matrix
 on: workflow_dispatch
 
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: 1
+
+
+
 jobs:
   list_versions:
     runs-on: ubuntu-latest
     outputs:
       job_versions: ${{ steps.dynamic.outputs.versions }}
 
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3    
+      # - name: Setup Python
+      #   uses: actions/setup-python@v4.2.0
+      #   with:
+      #     # Version range or exact version of Python or PyPy to use, using SemVer's version range syntax. Reads from .python-version if unset.
+      #     python-version: 3.9 # optional
+      #     # Used to specify a package manager for caching in the default directory. Supported values: pip, pipenv, poetry.
+      #     # cache: # optional    
+      - run: |
+          pip install pygithub packaging
+      - run: |
+          ls -l
+
       - id: dynamic
         run: |
-          echo "::set-output name=versions::{\"version\": [\"v1.16\",\"v1.17\", \"v1.18\", \"v1.19\", \"v1.19.1\" ] }"
-
-      # - id: dynamic-include
-      #   run: |
-      #     echo "::set-output name=versions::{\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}"
-
+          python .github/workflows/list_versions.py
 
 
   do_work:
-    name: processing_${{ matrix.version }}
+    name: processing_${{matrix.version}}
     needs: list_versions
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 2    
+      # max-parallel: 2
       matrix: ${{ fromJSON(needs.list_versions.outputs.job_versions) }}
     steps:
       - run: |
-          echo stubber get docstubs ${{ matrix.project }} 
-          echo stubber get frozen ${{ matrix.project }} 
-          echo stubber get merge ${{ matrix.project }} 
-          echo stubber get publish ${{ matrix.project }} 
+          echo ${{matrix.version}}
+          echo "stubber get docstubs ${{matrix.version}}"
+          sleep 1 
+      - run: |
+          echo stubber get frozen ${{matrix.version}} 
+          sleep 1 
+      - run: |
+          echo stubber get merge ${{matrix.version}} 
+          sleep 1 
+      - run: |
+          echo stubber get publish ${{matrix.version}} 
+          sleep 2 
 
