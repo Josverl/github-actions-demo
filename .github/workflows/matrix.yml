@@ -5,22 +5,30 @@ jobs:
   list_versions:
     runs-on: ubuntu-latest
     outputs:
-      job_output: ${{ steps.dynamic.outputs.matrix1 }}
+      job_versions: ${{ steps.dynamic.outputs.versions }}
+
     steps:
       - id: dynamic
         run: |
-          echo "::set-output name=matrix1::{\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}"
-      # - id: dynamic-2
+          echo "::set-output name=versions::{\"version\": [\"v1.16\",\"v1.17\", \"v1.18\", \"v1.19\", \"v1.19.1\" ] }"
+
+      # - id: dynamic-include
       #   run: |
-      #     echo "::set-output name=matrix1::{\"include\":[\"foo\",\"bar\"]}"
+      #     echo "::set-output name=versions::{\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}"
+
 
 
   do_work:
+    name: processing_${{ matrix.version }}
     needs: list_versions
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.list_versions.outputs.job_output) }}
+      max-parallel: 2    
+      matrix: ${{ fromJSON(needs.list_versions.outputs.job_versions) }}
     steps:
       - run: |
-          echo Project ${{ matrix.include }} 
-          echo Project ${{ matrix.project }} Config ${{ matrix.config }}
+          echo stubber get docstubs ${{ matrix.project }} 
+          echo stubber get frozen ${{ matrix.project }} 
+          echo stubber get merge ${{ matrix.project }} 
+          echo stubber get publish ${{ matrix.project }} 
+
